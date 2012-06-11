@@ -29,7 +29,7 @@
 
   $.extend($.timeago, {
     settings: {
-      refreshMillis: 60000,
+      refreshMillis: 3000,
       allowFuture: true,
       strings: {
         prefixAgo: null,
@@ -107,9 +107,15 @@
     }
   });
 
-  $.fn.timeago = function() {
+  $.fn.timeago = function(callback) {
     var self = this;
     self.each(refresh);
+    
+    if (callback) {
+      self.each(function() {
+        $(this).data('refresh-callback', callback); // Store a reference to the callback function on the element
+      });
+    }
 
     var $s = $t.settings;
     if ($s.refreshMillis > 0) {
@@ -120,6 +126,13 @@
 
   function refresh() {
     var data = prepareData(this);
+
+    if (typeof $(this).data('refresh-callback') == "function") {
+      if ($(this).data('refresh-callback').call(this, prepareData(this).datetime) == false) {
+        return false;
+      }
+    }
+
     if (!isNaN(data.datetime)) {
       $(this).text(inWords(data.datetime));
     }
