@@ -107,19 +107,31 @@
     }
   });
 
-  $.fn.timeago = function(callback) {
+  $.fn.timeago = function(options) {
+    if (options == "cancel") {
+      if( $(this).data('timer') ) {
+        clearInterval($(this).data('timer'));
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     var self = this;
     self.each(refresh);
     
-    if (callback) {
+    if (typeof options == "function") {
       self.each(function() {
-        $(this).data('refresh-callback', callback); // Store a reference to the callback function on the element
+        $(this).data('refresh-callback', options); // Store a reference to the callback function on the element
       });
     }
 
     var $s = $t.settings;
     if ($s.refreshMillis > 0) {
-      setInterval(function() { self.each(refresh); }, $s.refreshMillis);
+      var timer = setInterval(function() { self.each(refresh); }, $s.refreshMillis);
+      self.each(function() {
+        $(this).data('timer', timer);
+      });
     }
     return self;
   };
